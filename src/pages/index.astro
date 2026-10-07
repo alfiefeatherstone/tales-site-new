@@ -1,0 +1,126 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AudioPlayer from '../components/AudioPlayer.astro';
+import Cover from '../components/Cover.astro';
+import EpisodeList from '../components/EpisodeList.astro';
+import EpisodeMeta from '../components/EpisodeMeta.astro';
+import SubscribeLinks from '../components/SubscribeLinks.astro';
+import { getEpisodes } from '../lib/feed';
+import { getSettings } from '../lib/site';
+
+const settings = await getSettings();
+const episodes = await getEpisodes();
+// `episodes` is newest first. Feature the first full episode (not the trailer) as the starting point.
+const oldestFirst = [...episodes].reverse();
+const start = oldestFirst.find((episode) => !episode.isTrailer) ?? oldestFirst[0];
+// The five most recent episodes, leaving out the featured one so nothing is listed twice.
+const recent = episodes.filter((episode) => episode !== start).slice(0, 5);
+---
+
+<BaseLayout>
+  <section class="intro container" aria-labelledby="show-name">
+    <h1 id="show-name">{settings.showName}</h1>
+    <p class="lede">{settings.tagline}</p>
+  </section>
+
+  {
+    start && (
+      <section class="section container" aria-labelledby="start-heading">
+        <h2 id="start-heading" class="eyebrow">Start here</h2>
+        <div class="start">
+          <Cover
+            src={start.image}
+            alt={`Cover art for ${start.title}`}
+            size={360}
+            sizes="(min-width: 48rem) 360px, calc(100vw - 2rem)"
+            hero
+            class="start__cover"
+          />
+          <div>
+            <h3 class="start__title">
+              <a href={`/episodes/${start.slug}/`}>{start.title}</a>
+            </h3>
+            <EpisodeMeta episode={start} />
+            {start.excerpt && <p>{start.excerpt}</p>}
+            <AudioPlayer episode={start} />
+            <a href={`/episodes/${start.slug}/`}>Episode details and show notes</a>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    recent.length > 0 && (
+      <section class="section container" aria-labelledby="recent-heading">
+        <h2 id="recent-heading">Recent episodes</h2>
+        <EpisodeList episodes={recent} headingLevel="h3" />
+        <p class="more">
+          <a href="/episodes/">Browse all {episodes.length} episodes</a>
+        </p>
+      </section>
+    )
+  }
+
+  <section class="section container" aria-labelledby="subscribe-heading">
+    <h2 id="subscribe-heading">Subscribe</h2>
+    <p class="muted">Listen wherever you get your podcasts.</p>
+    <SubscribeLinks />
+  </section>
+</BaseLayout>
+
+<style>
+  .intro {
+    padding-top: var(--space-7);
+  }
+
+  .intro h1 {
+    font-size: var(--text-3xl);
+    letter-spacing: -0.01em;
+    margin-bottom: var(--space-3);
+  }
+
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .start {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .start :global(.start__cover) {
+    max-width: 360px;
+  }
+
+  @media (min-width: 48rem) {
+    .start {
+      grid-template-columns: 360px 1fr;
+      gap: var(--space-6);
+      align-items: start;
+    }
+  }
+
+  .start__title {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-3);
+  }
+
+  .start__title a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .start__title a:hover {
+    text-decoration: underline;
+  }
+
+  .more {
+    margin: var(--space-5) 0 0;
+  }
+</style>

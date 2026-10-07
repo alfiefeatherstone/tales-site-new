@@ -1,0 +1,65 @@
+---
+interface Props {
+  currentPage: number;
+  lastPage: number;
+  prevUrl?: string | undefined;
+  nextUrl?: string | undefined;
+}
+
+const { currentPage, lastPage, prevUrl, nextUrl } = Astro.props;
+const pageUrl = (n: number) => (n === 1 ? '/episodes/' : `/episodes/${n}/`);
+const pages = Array.from({ length: lastPage }, (_, i) => i + 1);
+---
+
+{
+  lastPage > 1 && (
+    <nav class="pagination" aria-label="Episode archive pages">
+      {prevUrl ? <a class="button" href={prevUrl} rel="prev">← Earlier</a> : <span />}
+      <ol class="pagination__pages" role="list">
+        {pages.map((n) => (
+          <li>
+            <a href={pageUrl(n)} aria-current={n === currentPage ? 'page' : undefined}>
+              <span class="visually-hidden">Page </span>
+              {n}
+            </a>
+          </li>
+        ))}
+      </ol>
+      {nextUrl ? <a class="button" href={nextUrl} rel="next">Later →</a> : <span />}
+    </nav>
+  )
+}
+
+<style>
+  .pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  .pagination__pages {
+    display: flex;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pagination__pages a {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: var(--radius);
+    text-decoration: none;
+  }
+
+  .pagination__pages a[aria-current] {
+    background: var(--color-surface-raised);
+    color: var(--color-text);
+    font-weight: 600;
+  }
+</style>

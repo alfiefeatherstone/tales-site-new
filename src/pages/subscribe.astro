@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SubscribeLinks from '../components/SubscribeLinks.astro';
+import { getSettings } from '../lib/site';
+
+const { showName } = await getSettings();
+---
+
+<BaseLayout title="Subscribe" description={`Follow ${showName} in your favourite podcast app, or subscribe directly to the RSS feed.`}>
+  <div class="container page-header">
+    <h1>Subscribe</h1>
+    <p class="lede">
+      Follow {showName} in your podcast app of choice so new episodes arrive as soon as they are released. Any podcast
+      app can also subscribe directly to the RSS feed.
+    </p>
+    <SubscribeLinks />
+  </div>
+</BaseLayout>

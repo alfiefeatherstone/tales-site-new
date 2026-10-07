@@ -1,0 +1,114 @@
+---
+import { getSubscribeLinks } from '../lib/site';
+
+interface Props {
+  /** "buttons" for the Subscribe and home pages, "compact" for the footer. */
+  variant?: 'buttons' | 'compact';
+}
+
+const { variant = 'buttons' } = Astro.props;
+const links = await getSubscribeLinks();
+const platforms = links.filter((link) => link.kind === 'platform');
+const feeds = links.filter((link) => link.kind === 'feed');
+---
+
+<div class:list={['subscribe', `subscribe--${variant}`]}>
+  <ul class="subscribe__platforms">
+    {
+      platforms.map((link) => (
+        <li>
+          <a class:list={[variant === 'buttons' && 'button']} href={link.url}>
+            {link.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  {
+    feeds.map((link) => (
+      <div class="subscribe__feed" data-copy-root>
+        <span class="subscribe__feed-label">{link.label}:</span>
+        <code class="subscribe__feed-url" data-copy-text>
+          {link.url}
+        </code>
+        <button type="button" class="button subscribe__copy" data-copy-button hidden>
+          Copy
+        </button>
+        <span class="visually-hidden" role="status" data-copy-status />
+      </div>
+    ))
+  }
+</div>
+
+<script>
+  // Progressive enhancement: reveal Copy buttons only when the Clipboard API exists.
+  if (navigator.clipboard) {
+    for (const root of document.querySelectorAll<HTMLElement>('[data-copy-root]')) {
+      const button = root.querySelector<HTMLButtonElement>('[data-copy-button]');
+      const source = root.querySelector<HTMLElement>('[data-copy-text]');
+      const status = root.querySelector<HTMLElement>('[data-copy-status]');
+      if (!button || !source) continue;
+      button.hidden = false;
+      button.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(source.textContent?.trim() ?? '');
+          button.textContent = 'Copied';
+          if (status) status.textContent = 'Feed URL copied to clipboard';
+        } catch {
+          button.textContent = 'Copy failed';
+        }
+        setTimeout(() => {
+          button.textContent = 'Copy';
+          if (status) status.textContent = '';
+        }, 2500);
+      });
+    }
+  }
+</script>
+
+<style>
+  .subscribe__platforms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .subscribe--compact .subscribe__platforms {
+    gap: var(--space-1) var(--space-4);
+  }
+
+  .subscribe--compact .subscribe__platforms a {
+    display: inline-block;
+    padding-block: var(--space-1);
+  }
+
+  .subscribe__feed {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  .subscribe__feed-label {
+    font-weight: 600;
+  }
+
+  .subscribe__feed-url {
+    padding: var(--space-1) var(--space-2);
+    border-radius: 3px;
+    background: var(--color-surface-raised);
+    font-size: var(--text-sm);
+    overflow-wrap: anywhere;
+    user-select: all;
+  }
+
+  .subscribe--compact .subscribe__copy {
+    min-height: 36px;
+    padding-block: var(--space-1);
+    font-size: var(--text-sm);
+  }
+</style>

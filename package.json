@@ -1,0 +1,27 @@
+{
+  "name": "tales-beneath-the-surface",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.3.5",
+    "fast-xml-parser": "^5.11.2",
+    "sanitize-html": "^2.18.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/sanitize-html": "^2.16.2",
+    "typescript": "^6.0.3"
+  }
+}

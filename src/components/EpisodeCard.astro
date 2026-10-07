@@ -1,0 +1,84 @@
+---
+import type { Episode } from '../lib/feed';
+import Cover from './Cover.astro';
+import EpisodeMeta from './EpisodeMeta.astro';
+
+interface Props {
+  episode: Episode;
+  headingLevel?: 'h2' | 'h3';
+  /** Eager-load the cover (only for the first card at the top of a page). */
+  hero?: boolean;
+}
+
+const { episode, headingLevel: Heading = 'h2', hero = false } = Astro.props;
+const href = `/episodes/${episode.slug}/`;
+---
+
+<article class="episode-card">
+  <Cover src={episode.image} alt="" size={160} sizes="(min-width: 40rem) 160px, 96px" hero={hero} class="episode-card__cover" />
+  <div class="episode-card__body">
+    <Heading class="episode-card__title"><a href={href}>{episode.title}</a></Heading>
+    <EpisodeMeta episode={episode} />
+    {episode.excerpt && <p class="episode-card__excerpt">{episode.excerpt}</p>}
+  </div>
+</article>
+
+<style>
+  .episode-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: var(--space-4);
+    align-items: start;
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+  }
+
+  @media (min-width: 40rem) {
+    .episode-card {
+      grid-template-columns: 160px 1fr;
+      gap: var(--space-5);
+    }
+  }
+
+  .episode-card:hover {
+    border-color: var(--color-accent);
+  }
+
+  .episode-card__title {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-2);
+  }
+
+  .episode-card__title a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  /* Make the whole card clickable via the title link. */
+  .episode-card__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .episode-card__title a:hover {
+    text-decoration: underline;
+  }
+
+  .episode-card:has(a:focus-visible) {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  .episode-card__title a:focus-visible {
+    outline: none;
+  }
+
+  .episode-card__excerpt {
+    margin: 0;
+    max-width: var(--measure);
+  }
+</style>

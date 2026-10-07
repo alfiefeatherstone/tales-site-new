@@ -1,0 +1,29 @@
+---
+import type { Episode } from '../lib/feed';
+
+interface Props {
+  episode: Episode;
+}
+
+const { episode } = Astro.props;
+---
+
+<div class="audio-player">
+  <audio controls preload="none" aria-label={`Play ${episode.title}`}>
+    <source src={episode.audio.url} type={episode.audio.type} />
+  </audio>
+  <p class="audio-player__fallback muted">
+    <a href={episode.audio.url}>Download the episode audio</a>
+  </p>
+</div>
+
+<style>
+  .audio-player {
+    margin-block: var(--space-4);
+  }
+
+  .audio-player__fallback {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-sm);
+  }
+</style>

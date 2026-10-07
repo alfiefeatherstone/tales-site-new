@@ -1,0 +1,125 @@
+---
+import { Image } from 'astro:assets';
+import { render, type CollectionEntry } from 'astro:content';
+import { initials } from '../lib/format';
+
+interface Props {
+  person: CollectionEntry<'people'>;
+}
+
+const { person } = Astro.props;
+const { name, role, photo, photoPosition, website, links = [] } = person.data;
+const allLinks = [
+  ...(website ? [{ label: new URL(website).hostname.replace(/^www\./, ''), url: website }] : []),
+  ...links,
+];
+const { Content } = await render(person);
+// Bodies containing only the "<!-- TODO: bio -->" comment count as empty.
+const hasBio = (person.body ?? '').replace(/<!--[\s\S]*?-->/g, '').trim().length > 0;
+---
+
+<article class="person">
+  {
+    photo ? (
+      <Image
+        src={photo}
+        alt={`Portrait of ${name}`}
+        width={96}
+        height={96}
+        densities={[1, 2]}
+        fit="cover"
+        position={photoPosition}
+        format="webp"
+        loading="lazy"
+        class="person__photo"
+      />
+    ) : (
+      <span class="person__photo person__initials" aria-hidden="true">
+        {initials(name)}
+      </span>
+    )
+  }
+  <div class="person__body">
+    <h3 class="person__name">{name}</h3>
+    <p class="person__role">{role}</p>
+    {
+      allLinks.length > 0 && (
+        <ul class="person__links">
+          {allLinks.map((link) => (
+            <li>
+              <a href={link.url} rel="noopener noreferrer">
+                {link.label}
+                <span class="visually-hidden"> ({name})</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    {
+      hasBio && (
+        <div class="person__bio prose">
+          <Content />
+        </div>
+      )
+    }
+  </div>
+</article>
+
+<style>
+  .person {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: var(--space-4);
+    align-items: start;
+    height: 100%;
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+  }
+
+  .person__photo {
+    width: 96px;
+    height: 96px;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .person__initials {
+    display: grid;
+    place-items: center;
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-border);
+    color: var(--color-accent);
+    font-family: var(--font-serif);
+    font-size: 1.75rem;
+    font-weight: 600;
+  }
+
+  .person__name {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-1);
+  }
+
+  .person__role {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .person__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+
+  .person__bio {
+    margin-top: var(--space-3);
+  }
+</style>

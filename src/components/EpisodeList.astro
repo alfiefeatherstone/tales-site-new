@@ -1,0 +1,33 @@
+---
+import type { Episode } from '../lib/feed';
+import EpisodeCard from './EpisodeCard.astro';
+
+interface Props {
+  episodes: Episode[];
+  headingLevel?: 'h2' | 'h3';
+  /** Eager-load the first card's cover (when the list starts at the top of the page). */
+  eagerFirst?: boolean;
+}
+
+const { episodes, headingLevel = 'h2', eagerFirst = false } = Astro.props;
+---
+
+<ol class="episode-list" role="list">
+  {
+    episodes.map((episode, index) => (
+      <li>
+        <EpisodeCard episode={episode} headingLevel={headingLevel} hero={eagerFirst && index === 0} />
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .episode-list {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>

@@ -1,0 +1,17 @@
+# Site-wide settings. Read through the "settings" content collection (entry id: site).
+site:
+  showName: Tales Beneath the Surface
+  # TODO(review): confirm the tagline wording.
+  tagline: Original horror stories from a London where the ordinary and the uncanny overlap.
+  # Plain-text version of the channel description in the RSS feed; used for meta tags.
+  description: >-
+    In Tales Beneath the Surface, you’ll hear a collection of original horror stories
+    set in a version of London where the ordinary and the uncanny overlap. Each episode
+    features several self-contained tales, narrated with dark humour and unsettling
+    charm by The Narrator. Perfect for fans of anthology podcasts and atmospheric storytelling.
+  language: en-GB
+  timeZone: Europe/London
+  # Fallback cover for episodes without their own artwork, and default social-share image.
+  channelImage: https://media.rss.com/tales-beneath-the-surface/podcast_cover.jpg
+  # Uncomment to use a custom social-share image from /public instead of the channel cover.
+  # socialImage: /social.png

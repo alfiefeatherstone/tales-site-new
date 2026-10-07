@@ -1,0 +1,44 @@
+---
+import type { GetStaticPaths, Page } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EpisodeList from '../../components/EpisodeList.astro';
+import Pagination from '../../components/Pagination.astro';
+import { getEpisodes, type Episode } from '../../lib/feed';
+import { getSettings } from '../../lib/site';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  // getEpisodes() is newest first; the archive reads from the first episode onwards.
+  const episodes = [...(await getEpisodes())].reverse();
+  return paginate(episodes, { pageSize: 10 });
+}) satisfies GetStaticPaths;
+
+interface Props {
+  page: Page<Episode>;
+}
+
+const { page } = Astro.props;
+const { showName } = await getSettings();
+const title = page.currentPage === 1 ? 'Episodes' : `Episodes, page ${page.currentPage} of ${page.lastPage}`;
+const description =
+  page.currentPage === 1
+    ? `Every episode of ${showName}, oldest first.`
+    : `Episodes ${page.start + 1}–${page.end + 1} of ${page.total} of ${showName}.`;
+---
+
+<BaseLayout title={title} description={description}>
+  <Fragment slot="head">
+    {page.url.prev && <link rel="prev" href={new URL(page.url.prev, Astro.site).href} />}
+    {page.url.next && <link rel="next" href={new URL(page.url.next, Astro.site).href} />}
+  </Fragment>
+  <div class="container page-header">
+    <h1>Episodes</h1>
+    <p class="muted">
+      {page.total} episodes, oldest first.
+      {page.lastPage > 1 && <>Page {page.currentPage} of {page.lastPage}.</>}
+    </p>
+  </div>
+  <div class="container">
+    <EpisodeList episodes={page.data} eagerFirst />
+    <Pagination currentPage={page.currentPage} lastPage={page.lastPage} prevUrl={page.url.prev} nextUrl={page.url.next} />
+  </div>
+</BaseLayout>

@@ -1,0 +1,71 @@
+---
+import '../styles/global.css';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { getFeed } from '../lib/feed';
+import { getSettings, getSubscribeLinks } from '../lib/site';
+
+interface Props {
+  /** Page title; the show name is appended unless this is the home page. */
+  title?: string;
+  description?: string;
+  /** Absolute or root-relative social-share image. Defaults to settings.socialImage or the channel cover. */
+  image?: string;
+  imageAlt?: string;
+  type?: 'website' | 'article' | 'music.song';
+  noindex?: boolean;
+}
+
+const settings = await getSettings();
+const { channel } = await getFeed();
+const feedLink = (await getSubscribeLinks()).find((link) => link.kind === 'feed');
+
+const { title, description = settings.description, imageAlt, type = 'website', noindex = false } = Astro.props;
+
+const fullTitle = title ? `${title} | ${settings.showName}` : `${settings.showName}: ${settings.tagline}`;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const image = new URL(Astro.props.image ?? settings.socialImage ?? channel.image ?? settings.channelImage, Astro.site).href;
+const alt = imageAlt ?? `${settings.showName} cover art`;
+---
+
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f5f2ec" media="(prefers-color-scheme: light)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    {feedLink && <link rel="alternate" type="application/rss+xml" title={settings.showName} href={feedLink.url} />}
+
+    <meta property="og:site_name" content={settings.showName} />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={title ?? settings.showName} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:alt" content={alt} />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title ?? settings.showName} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+    <meta name="twitter:image:alt" content={alt} />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader showName={settings.showName} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <SiteFooter showName={settings.showName} />
+  </body>
+</html>

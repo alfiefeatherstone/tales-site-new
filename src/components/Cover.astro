@@ -1,0 +1,54 @@
+---
+import { Image } from 'astro:assets';
+
+interface Props {
+  src: string;
+  alt: string;
+  /** Rendered size in CSS pixels (covers are square). */
+  size: number;
+  /** The above-the-fold hero image: loaded eagerly with high priority. */
+  hero?: boolean;
+  sizes?: string;
+  class?: string;
+}
+
+const { src, alt, size, hero = false, sizes = `${size}px`, class: className } = Astro.props;
+const loading = hero ? 'eager' : 'lazy';
+const fetchpriority = hero ? 'high' : undefined;
+const classes = ['cover', className].filter(Boolean).join(' ');
+
+// Remote covers on media.rss.com are optimised at build time unless disabled
+// (e.g. offline builds from a local feed file).
+const optimise = process.env.OPTIMIZE_REMOTE_IMAGES !== 'false';
+---
+
+{
+  optimise ? (
+    <Image
+      src={src}
+      alt={alt}
+      width={size}
+      height={size}
+      widths={[size, size * 2].filter((w) => w <= 1400)}
+      sizes={sizes}
+      format="webp"
+      quality={78}
+      fit="cover"
+      loading={loading}
+      decoding={hero ? 'sync' : 'async'}
+      fetchpriority={fetchpriority}
+      class={classes}
+    />
+  ) : (
+    <img
+      src={src}
+      alt={alt}
+      width={size}
+      height={size}
+      loading={loading}
+      decoding={hero ? 'sync' : 'async'}
+      fetchpriority={fetchpriority}
+      class={classes}
+    />
+  )
+}

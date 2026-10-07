@@ -1,0 +1,36 @@
+---
+import type { Episode } from '../lib/feed';
+import { formatDate, formatDuration, isoDuration } from '../lib/format';
+
+interface Props {
+  episode: Episode;
+}
+
+const { episode } = Astro.props;
+---
+
+<p class="episode-meta">
+  <time datetime={episode.pubDate.toISOString()}>{formatDate(episode.pubDate)}</time>
+  {
+    episode.duration !== null && (
+      <>
+        <span aria-hidden="true">·</span>
+        <time datetime={isoDuration(episode.duration)}>{formatDuration(episode.duration)}</time>
+      </>
+    )
+  }
+  {episode.isTrailer && <span class="label">Trailer</span>}
+  {episode.explicit && <span class="label">Explicit</span>}
+</p>
+
+<style>
+  .episode-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+    margin: 0 0 var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+</style>

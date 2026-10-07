@@ -1,0 +1,43 @@
+[
+  {
+    "id": "apple-podcasts",
+    "label": "Apple Podcasts",
+    "url": "https://podcasts.apple.com/us/podcast/tales-beneath-the-surface/id1847740009"
+  },
+  {
+    "id": "spotify",
+    "label": "Spotify",
+    "url": "https://open.spotify.com/show/58Ptteugb2NiJEuWEPQKgZ"
+  },
+  {
+    "id": "amazon-music",
+    "label": "Amazon Music",
+    "url": "https://music.amazon.com/podcasts/5966614f-da85-4c1b-8d6e-90b4b60630a6/tales-beneath-the-surface"
+  },
+  {
+    "id": "pocket-casts",
+    "label": "Pocket Casts",
+    "url": "https://pocketcasts.com/podcast/tales-beneath-the-surface/1c08d2d0-9213-013e-bb25-0acc26574db2"
+  },
+  {
+    "id": "castro",
+    "label": "Castro",
+    "url": "https://castro.fm/podcast/a9f6c731-127b-4f21-92ce-312dbc60b315"
+  },
+  {
+    "id": "podcast-addict",
+    "label": "Podcast Addict",
+    "url": "https://podcastaddict.com/podcast/tales-beneath-the-surface/6159609"
+  },
+  {
+    "id": "rss-com",
+    "label": "RSS.com",
+    "url": "https://rss.com/podcasts/tales-beneath-the-surface/"
+  },
+  {
+    "id": "rss-feed",
+    "label": "RSS feed",
+    "url": "https://media.rss.com/tales-beneath-the-surface/feed.xml",
+    "kind": "feed"
+  }
+]

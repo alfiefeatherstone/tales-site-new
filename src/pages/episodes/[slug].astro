@@ -1,0 +1,287 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AudioPlayer from '../../components/AudioPlayer.astro';
+import Cover from '../../components/Cover.astro';
+import EpisodeMeta from '../../components/EpisodeMeta.astro';
+import { getEpisodes, type Episode } from '../../lib/feed';
+import { getSettings } from '../../lib/site';
+import { getTranscriptMap, reportTranscriptCoverage, type Transcript } from '../../lib/transcripts';
+
+export const getStaticPaths = (async () => {
+  const episodes = await getEpisodes();
+  const transcripts = await getTranscriptMap();
+  await reportTranscriptCoverage();
+
+  // `episodes` is newest first.
+  return episodes.map((episode, index) => ({
+    params: { slug: episode.slug },
+    props: {
+      episode,
+      older: episodes[index + 1],
+      newer: episodes[index - 1],
+      transcript: transcripts.get(episode.slug),
+    },
+  }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  episode: Episode;
+  older?: Episode | undefined;
+  newer?: Episode | undefined;
+  transcript?: Transcript | undefined;
+}
+
+const { episode, older, newer, transcript } = Astro.props;
+const Transcript = transcript ? (await render(transcript)).Content : null;
+const speakers = transcript?.data.speakers ?? [];
+const hasShowNotes = episode.showNotesHtml.length > 0;
+const { showName, tagline } = await getSettings();
+const description = episode.excerpt || `Listen to “${episode.title}” from ${showName}. ${tagline}`;
+---
+
+<BaseLayout
+  title={episode.title}
+  description={description}
+  image={episode.image}
+  imageAlt={`Cover art for ${episode.title}`}
+  type="article"
+>
+  <article class="episode container">
+    <header class="episode__header">
+      <Cover
+        src={episode.image}
+        alt={`Cover art for ${episode.title}`}
+        size={320}
+        sizes="(min-width: 48rem) 320px, calc(100vw - 2rem)"
+        hero
+        class="episode__cover"
+      />
+      <div>
+        <p class="episode__back"><a href="/episodes/">All episodes</a></p>
+        <h1>{episode.title}</h1>
+        <EpisodeMeta episode={episode} />
+        <AudioPlayer episode={episode} />
+        {Transcript && <p><a href="#transcript" data-open-transcript>Jump to transcript</a></p>}
+      </div>
+    </header>
+
+    {
+      hasShowNotes && (
+        <section class="section" aria-labelledby="show-notes-heading">
+          <h2 id="show-notes-heading">Show notes</h2>
+          <div class="show-notes prose" set:html={episode.showNotesHtml} />
+        </section>
+      )
+    }
+
+    {
+      episode.chapters.length > 0 && (
+        <section class="section" aria-labelledby="chapters-heading">
+          <h2 id="chapters-heading">Chapters</h2>
+          <ol class="chapters" role="list">
+            {episode.chapters.map((chapter) => (
+              <li>
+                <span class="chapters__time">{chapter.startLabel}</span>
+                <span>{chapter.title}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )
+    }
+
+    {
+      Transcript && (
+        <section class="section" aria-labelledby="transcript-heading">
+          <h2 id="transcript-heading">Transcript</h2>
+          <details id="transcript" class="transcript">
+            <summary>Show transcript</summary>
+            <div class="transcript__inner">
+              {speakers.length > 0 && (
+                <div class="transcript__speakers">
+                  <h3>Speakers</h3>
+                  <ul>
+                    {speakers.map((speaker) => (
+                      <li>{speaker}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div class="transcript-body">
+                <Transcript />
+              </div>
+            </div>
+          </details>
+        </section>
+      )
+    }
+
+    {
+      (older || newer) && (
+        <nav class="section episode-nav" aria-label="More episodes">
+          {older ? (
+            <a class="episode-nav__link" href={`/episodes/${older.slug}/`} rel="prev">
+              <span class="episode-nav__dir">← Previous episode</span>
+              <span class="episode-nav__title">{older.title}</span>
+            </a>
+          ) : (
+            <span />
+          )}
+          {newer && (
+            <a class="episode-nav__link episode-nav__link--next" href={`/episodes/${newer.slug}/`} rel="next">
+              <span class="episode-nav__dir">Next episode →</span>
+              <span class="episode-nav__title">{newer.title}</span>
+            </a>
+          )}
+        </nav>
+      )
+    }
+  </article>
+
+  <script>
+    // Open the transcript <details> when the URL hash points at it.
+    const transcript = document.getElementById('transcript');
+    if (transcript instanceof HTMLDetailsElement) {
+      const openIfTargeted = () => {
+        if (location.hash === '#transcript') transcript.open = true;
+      };
+      openIfTargeted();
+      addEventListener('hashchange', openIfTargeted);
+      // The hash may already be #transcript, in which case clicking fires no hashchange.
+      document.querySelector('[data-open-transcript]')?.addEventListener('click', () => (transcript.open = true));
+    }
+  </script>
+</BaseLayout>
+
+
+<style>
+  .episode {
+    padding-top: var(--space-6);
+  }
+
+  .episode__header {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .episode__header :global(.episode__cover) {
+    max-width: 320px;
+  }
+
+  @media (min-width: 48rem) {
+    .episode__header {
+      grid-template-columns: 320px 1fr;
+      gap: var(--space-6);
+      align-items: start;
+    }
+  }
+
+  .episode__back {
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-2);
+  }
+
+  .chapters {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-width: var(--measure);
+  }
+
+  .chapters li {
+    display: flex;
+    gap: var(--space-4);
+    padding-block: var(--space-2);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .chapters__time {
+    min-width: 4.5ch;
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .transcript summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface-raised);
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .transcript summary:hover {
+    border-color: var(--color-accent);
+  }
+
+  .transcript[open] summary {
+    margin-bottom: var(--space-5);
+  }
+
+  .transcript__speakers {
+    margin-bottom: var(--space-5);
+    padding: var(--space-4);
+    border-left: 3px solid var(--color-accent);
+    background: var(--color-surface);
+    max-width: var(--measure);
+  }
+
+  .transcript__speakers h3 {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-2);
+  }
+
+  .transcript__speakers ul {
+    margin: 0;
+    padding-left: var(--space-5);
+  }
+
+  .episode-nav {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 40rem) {
+    .episode-nav {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .episode-nav__link {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    text-decoration: none;
+  }
+
+  .episode-nav__link:hover {
+    border-color: var(--color-accent);
+  }
+
+  .episode-nav__link--next {
+    text-align: right;
+  }
+
+  .episode-nav__dir {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .episode-nav__title {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    color: var(--color-text);
+  }
+</style>

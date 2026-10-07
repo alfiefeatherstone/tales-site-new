@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .bg { fill: #0f1012; }
+    .wave { fill: none; stroke: #c9a86a; stroke-width: 3.5; stroke-linecap: round; }
+    .t { fill: #e8e4dc; }
+    @media (prefers-color-scheme: light) { .bg { fill: #f5f2ec; } .wave { stroke: #7a5718; } .t { fill: #1c1b19; } }
+  </style>
+  <rect class="bg" width="64" height="64" rx="12"/>
+  <path class="t" d="M17 13h30v7H35.5v19h-7V20H17z"/>
+  <path class="wave" d="M10 46c5.5-4 10.5-4 16 0s10.5 4 16 0 8-3.5 12-1"/>
+  <path class="wave" d="M10 54c5.5-4 10.5-4 16 0s10.5 4 16 0 8-3.5 12-1" opacity=".55"/>
+</svg>

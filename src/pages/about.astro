@@ -1,0 +1,56 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PersonCard from '../components/PersonCard.astro';
+
+const about = await getEntry('pages', 'about');
+if (!about) throw new Error('[about] src/content/pages/about.md is missing.');
+const { Content } = await render(about);
+
+const people = (await getCollection('people')).sort(
+  (a, b) => a.data.order - b.data.order || a.data.name.localeCompare(b.data.name),
+);
+const groups = [
+  { id: 'cast', heading: 'Cast', members: people.filter((p) => p.data.groups.includes('cast')) },
+  { id: 'crew', heading: 'Crew', members: people.filter((p) => p.data.groups.includes('crew')) },
+].filter((group) => group.members.length > 0);
+---
+
+<BaseLayout title={about.data.title} description={about.data.description}>
+  <div class="container page-header">
+    <h1>{about.data.title}</h1>
+    <div class="prose about-intro">
+      <Content />
+    </div>
+  </div>
+
+  {
+    groups.map((group) => (
+      <section class="section container" aria-labelledby={`${group.id}-heading`}>
+        <h2 id={`${group.id}-heading`}>{group.heading}</h2>
+        <ul class="people" role="list">
+          {group.members.map((person) => (
+            <li>
+              <PersonCard person={person} />
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+</BaseLayout>
+
+<style>
+  .about-intro {
+    font-size: var(--text-lg);
+  }
+
+  .people {
+    display: grid;
+    grid-template-columns: repeat(100%, 1fr); /*repeat(auto-fill, minmax(min(100%, 19rem), 1fr));*/
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>
