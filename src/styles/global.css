@@ -86,6 +86,17 @@ body {
   line-height: var(--leading);
 }
 
+/* Site-wide background image: fixed, covering the viewport, at 20% opacity over the page colour. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: url('/Eye-min.jpg') center / cover no-repeat;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
 main {
   flex: 1;
 }
